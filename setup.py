@@ -30,7 +30,7 @@ setuptools.setup(
     description="distributed rate limiter",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yprocfly/fastapi-base-tools",
+    url="https://github.com/yprocfly/rate-limit-tool",
     keywords=['rate', 'rate-limit', 'limit', 'redis-cell'],
     packages=setuptools.find_packages(),
     install_requires=read_requirements('requirements.txt'),

@@ -13,7 +13,7 @@ def async_rate_limit(key_name, default_return=None):
             self.func = func
 
         async def __call__(self, *args, **kwargs):
-            return OverLimitHandle(
+            return await OverLimitHandle(
                 func=self.func,
                 func_params={
                     'args': args,

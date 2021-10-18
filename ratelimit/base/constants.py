@@ -6,10 +6,10 @@ class LimitConfig:
     service = 'default'
 
     # 总令牌桶数量
-    total_quota = 1000
+    total_quota = 100
 
     # 单位时间内生成的令牌数
-    limit_quota = 100
+    limit_quota = 3
 
     # 单位时间
     limit_second = 1

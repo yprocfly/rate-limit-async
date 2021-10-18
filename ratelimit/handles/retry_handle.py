@@ -7,7 +7,7 @@ class RetryHandle(BaseHandle):
     """流量超限做重试处理"""
     handle_key = 'retry'
 
-    def execute(self):
+    async def execute(self):
         """
         重试处理，配置信息 self.handle_params 格式如下：
             {

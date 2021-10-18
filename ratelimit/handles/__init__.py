@@ -1,4 +1,4 @@
-from ratelimit.base.base_tools import singleton
+from ratelimit.base.base_decorators import singleton
 from ratelimit.base.errors import NotDefineHandleError, NotAllowHandleError
 from ratelimit.handles.base import BaseHandle
 from ratelimit.handles.discard_handle import DiscardHandle

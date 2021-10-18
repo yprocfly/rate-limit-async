@@ -4,9 +4,8 @@ import traceback
 
 import ujson as json
 
-from ratelimit.base.base_tools import singleton
+from ratelimit.base.base_decorators import singleton
 from ratelimit.base.constants import RedisConfig, LimitConfig
-from ratelimit.base.errors import LackParamsError
 
 try:
     from aioredis import create_redis_pool, ConnectionsPool
@@ -24,11 +23,10 @@ class RedisRateLimit:
         self.minsize = RedisConfig.minsize
         self.maxsize = RedisConfig.maxsize
         self.kwargs = RedisConfig.kwargs or {}
-        self.conn = None
 
     async def get_connection(self):
         """获取redis连接"""
-        if not self.conn:
+        if not hasattr(self, 'conn'):
             self.conn = await create_redis_pool(
                 f"redis://:{self.password}@{self.host}:{self.port}/{self.db}",
                 minsize=self.minsize,
@@ -55,6 +53,8 @@ class RedisRateLimit:
         """
         conn = await self.get_connection()
         limit_config = json.loads(await conn.hget(LimitConfig.service, key_name) or '{}')
+        limit_config['service'] = LimitConfig.service
+        limit_config['key_name'] = key_name
         limit_config['total_quota'] = limit_config.get('total_quota') or LimitConfig.total_quota
         limit_config['limit_quota'] = limit_config.get('limit_quota') or LimitConfig.limit_quota
         limit_config['limit_second'] = limit_config.get('limit_second') or LimitConfig.limit_second
@@ -80,6 +80,7 @@ class RedisRateLimit:
             once_quota = limit_config.get('once_quota') or LimitConfig.once_quota
 
             conn = await self.get_connection()
+            print('CL.THROTTLE', key_name, total_quota, limit_quota, limit_second, once_quota)
             result = await conn.execute('CL.THROTTLE', key_name, total_quota, limit_quota, limit_second, once_quota)
             print(result)
             return result[0] == 0, limit_config

@@ -38,6 +38,6 @@ class BaseHandle:
     def _get_key_name(self):
         return self.limit_config.get('key_name')
 
-    def execute(self):
+    async def execute(self):
         """所有处理方式都要重写该方法"""
         raise NotImplementedError('未定义执行方法')
