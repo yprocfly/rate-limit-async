@@ -21,7 +21,6 @@ def read_requirements(filename):
         if not line.startswith('#')
     ]
 
-
 setuptools.setup(
     name="rate_limit_tool",
     version="0.0.1",
@@ -37,7 +36,5 @@ setuptools.setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
     ],
 )

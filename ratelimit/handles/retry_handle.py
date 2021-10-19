@@ -1,5 +1,6 @@
 import asyncio
 
+from ratelimit.base.errors import NotDefaultValueError
 from ratelimit.handles.base import BaseHandle
 
 
@@ -32,3 +33,8 @@ class RetryHandle(BaseHandle):
                 current_count += 1
                 continue
             return await self.func(*func_args, **func_kwargs)
+
+        # 重试失败，则返回默认值
+        if self.default_return is None:
+            raise NotDefaultValueError('重试失败，缺少默认返回值')
+        return self.default_return
