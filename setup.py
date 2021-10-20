@@ -21,9 +21,10 @@ def read_requirements(filename):
         if not line.startswith('#')
     ]
 
+
 setuptools.setup(
     name="rate_limit_tool",
-    version="0.0.1",
+    version="0.0.2",
     author="Yang Peng",
     author_email="yp_rocfly@foxmail.com",
     description="distributed rate limiter",

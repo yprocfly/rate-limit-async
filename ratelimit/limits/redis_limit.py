@@ -39,7 +39,7 @@ class RedisRateLimit:
         """
         获取key对应的配置【直接把限流配置信息存在redis中，直接获取】
         :param key_name: redis键名
-        :return: 限流配置，redis中的存储格式如下
+        :return: 限流配置，如果是用了redis的配置【使用hash类型】，在redis中的存储格式如下
             "service": {
                 "key_name": {
                     "total_quota": 100,          # 令牌桶大小
@@ -51,8 +51,11 @@ class RedisRateLimit:
                 }
             }
         """
-        conn = await self.get_connection()
-        limit_config = json.loads(await conn.hget(LimitConfig.service, key_name) or '{}')
+        limit_config = LimitConfig.rate_limit_config
+        if LimitConfig.use_redis:
+            conn = await self.get_connection()
+            limit_config = json.loads(await conn.hget(LimitConfig.service, key_name) or '{}')
+
         limit_config['service'] = LimitConfig.service
         limit_config['key_name'] = key_name
         limit_config['total_quota'] = limit_config.get('total_quota') or LimitConfig.total_quota
@@ -80,9 +83,7 @@ class RedisRateLimit:
             once_quota = limit_config.get('once_quota') or LimitConfig.once_quota
 
             conn = await self.get_connection()
-            print('CL.THROTTLE', key_name, total_quota, limit_quota, limit_second, once_quota)
             result = await conn.execute('CL.THROTTLE', key_name, total_quota, limit_quota, limit_second, once_quota)
-            print(result)
             return result[0] == 0, limit_config
         except Exception as err:
             # 出现报错直接允许【高可用】
