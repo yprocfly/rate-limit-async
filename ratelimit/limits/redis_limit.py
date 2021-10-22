@@ -84,6 +84,7 @@ class RedisRateLimit:
 
             conn = await self.get_connection()
             result = await conn.execute('CL.THROTTLE', key_name, total_quota, limit_quota, limit_second, once_quota)
+            print(f'* limit result【{key_name}】', result)
             return result[0] == 0, limit_config
         except Exception as err:
             # 出现报错直接允许【高可用】
