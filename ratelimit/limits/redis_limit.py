@@ -51,7 +51,7 @@ class RedisRateLimit:
                 }
             }
         """
-        limit_config = LimitConfig.rate_limit_config
+        limit_config = LimitConfig.rate_limit_config.get(key_name) or {}
         if LimitConfig.use_redis:
             conn = await self.get_connection()
             limit_config = json.loads(await conn.hget(LimitConfig.service, key_name) or '{}')
