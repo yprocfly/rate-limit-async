@@ -1,17 +1,20 @@
-import threading
+"""基于本地队列，可能会出现数据丢失的问题"""
 from asyncio import Queue
 
+from ratelimit.limits.redis_limit import RedisRateLimit
+from ratelimit.queue_tools.base import BaseQueue
 
-class QueueTools:
-    """队列工具类"""
+
+class LocalQueueTools(BaseQueue):
+    """本地内存队列工具类"""
 
     _queue = None
-    _has_thread = False
+    queue_type = 'local'
 
     def __init__(self):
         self._queue = Queue()
 
-    async def add(self, item):
+    async def add_item(self, item):
         """
         加入队列
         :param item: 这里队列的格式如下：
@@ -20,19 +23,19 @@ class QueueTools:
                 "func_args": [],
                 "func_kwargs": {},
                 "limit_config": {},
-                "limit_cls": RedisRateLimit
+                "delay": 3
             }
         """
         await self._queue.put(item)
 
-    async def get(self):
+    async def get_item(self):
         """获取队列信息"""
         return await self._queue.get() or {}
 
     async def _consume(self):
         """消费队列【内存队列，这里可能会存在任务丢失的情况】"""
         while True:
-            item = await self.get()
+            item = await self.get_item()
             if not item:
                 continue
 
@@ -40,19 +43,13 @@ class QueueTools:
             func_args = item.get('func_args')
             func_kwargs = item.get('func_kwargs')
             limit_config = item.get('limit_config')
-            limit_cls = item.get('limit_cls')
             key_name = limit_config.get('key_name')
 
             # 这里也要判断是否超限
-            result, _ = await limit_cls().attempt_get_token(key_name, limit_config)
+            result, _ = await RedisRateLimit().attempt_get_token(key_name, limit_config)
             if not result:
                 continue
 
             await func(*func_args, **func_kwargs)
 
-    async def execute(self):
-        """起一个永久线程消费"""
-        if not self._has_thread:
-            self._has_thread = True
-            task = threading.Thread(target=self.execute)
-            task.start()
+

@@ -5,35 +5,12 @@ import traceback
 import ujson as json
 
 from ratelimit.base.base_decorators import singleton
-from ratelimit.base.constants import RedisConfig, LimitConfig
-
-try:
-    from aioredis import create_redis_pool, ConnectionsPool
-except:
-    raise Exception('未安装 aioredis 库，支持 1.X.X 版本')
+from ratelimit.base.constants import LimitConfig
+from ratelimit.base.tools import get_redis_connection
 
 
 @singleton
 class RedisRateLimit:
-    def __init__(self):
-        self.host = RedisConfig.host
-        self.port = RedisConfig.port
-        self.db = RedisConfig.db
-        self.password = RedisConfig.password
-        self.minsize = RedisConfig.minsize
-        self.maxsize = RedisConfig.maxsize
-        self.kwargs = RedisConfig.kwargs or {}
-
-    async def get_connection(self):
-        """获取redis连接"""
-        if not hasattr(self, 'conn'):
-            self.conn = await create_redis_pool(
-                f"redis://:{self.password}@{self.host}:{self.port}/{self.db}",
-                minsize=self.minsize,
-                maxsize=self.maxsize,
-                **self.kwargs
-            )
-        return self.conn
 
     async def get_limit_config(self, key_name):
         """
@@ -53,7 +30,7 @@ class RedisRateLimit:
         """
         limit_config = LimitConfig.rate_limit_config.get(key_name) or {}
         if LimitConfig.use_redis:
-            conn = await self.get_connection()
+            conn = await get_redis_connection()
             limit_config = json.loads(await conn.hget(LimitConfig.service, key_name) or '{}')
 
         limit_config['service'] = LimitConfig.service
@@ -63,6 +40,7 @@ class RedisRateLimit:
         limit_config['limit_second'] = limit_config.get('limit_second') or LimitConfig.limit_second
         limit_config['once_quota'] = limit_config.get('once_quota') or LimitConfig.once_quota
         limit_config['handle'] = limit_config.get('handle') or LimitConfig.default_handle
+        limit_config['handle_params'] = limit_config.get('handle_params') or LimitConfig.default_handle_params
 
         return limit_config
 
@@ -82,7 +60,7 @@ class RedisRateLimit:
             limit_second = limit_config.get('limit_second') or LimitConfig.limit_second
             once_quota = limit_config.get('once_quota') or LimitConfig.once_quota
 
-            conn = await self.get_connection()
+            conn = await get_redis_connection()
             result = await conn.execute('CL.THROTTLE', key_name, total_quota, limit_quota, limit_second, once_quota)
             print(f'* limit result【{key_name}】', result)
             return result[0] == 0, limit_config

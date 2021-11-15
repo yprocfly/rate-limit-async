@@ -2,6 +2,7 @@ import asyncio
 
 from ratelimit.base.errors import NotDefaultValueError
 from ratelimit.handles.base import BaseHandle
+from ratelimit.limits.redis_limit import RedisRateLimit
 
 
 class RetryHandle(BaseHandle):
@@ -28,7 +29,7 @@ class RetryHandle(BaseHandle):
         while current_count < retry_count:
             await asyncio.sleep(retry_wait)
             # 这里也要判断是否超限
-            result, _ = await self.limit_cls().attempt_get_token(key_name, self.limit_config)
+            result, _ = await RedisRateLimit().attempt_get_token(key_name, self.limit_config)
             if not result:
                 current_count += 1
                 continue

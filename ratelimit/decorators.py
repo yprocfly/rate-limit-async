@@ -1,4 +1,6 @@
 """一些装饰器"""
+import asyncio
+
 from ratelimit.utils.over_limit_handle import OverLimitHandle
 
 
@@ -24,3 +26,30 @@ def async_rate_limit(key_name, default_return=None):
             ).execute()
 
     return RateLimitDecorator
+
+
+if __name__ == '__main__':
+
+    @async_rate_limit('test')
+    async def test(number):
+        from datetime import datetime
+        print('*********', datetime.now(), number)
+
+
+    import random
+    from ratelimit.base.constants import LimitConfig
+    LimitConfig.total_quota = 0
+    LimitConfig.limit_quota = 1
+    LimitConfig.default_handle = 'queue'
+    LimitConfig.default_handle_params = {
+        'delay': 3,
+        'limit_delay': 1,
+        'queue_type': 'redis'
+    }
+
+    loop = asyncio.get_event_loop()
+    task = asyncio.ensure_future(test(random.random()))
+    task1 = asyncio.ensure_future(test(random.random()))
+
+    loop.run_until_complete(task)
+    loop.run_until_complete(task1)

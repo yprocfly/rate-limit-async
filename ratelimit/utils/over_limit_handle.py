@@ -4,24 +4,22 @@ from ratelimit.limits.redis_limit import RedisRateLimit
 
 class OverLimitHandle:
 
-    def __init__(self, func, func_params, key_name, default_return=None, limit_cls=RedisRateLimit):
+    def __init__(self, func, func_params, key_name, default_return=None):
         """
         当流量超限时的处理类
         :param func: 超限的方法
         :param func_params: 超限方法的参数
         :param key_name: 获取超限配置的key
         :param default_return: 默认返回值
-        :param limit_cls: 判断超限的类【默认使用redis-cell】
         """
         self.func = func
         self.func_params = func_params
         self.key_name = key_name
         self.default_return = default_return
-        self.limit_cls = limit_cls
 
     async def _can_do_func(self):
         """检查流量是否限制"""
-        result, self.limit_config = await self.limit_cls().attempt_get_token(key_name=self.key_name)
+        result, self.limit_config = await RedisRateLimit().attempt_get_token(key_name=self.key_name)
         return result
 
     async def _do_if_limit(self):

@@ -20,6 +20,9 @@ class LimitConfig:
     # 被限流时的处理方式，默认丢弃【discard丢弃；queue排队；retry重试】
     default_handle = 'discard'
 
+    # 处理方式对应的默认配置参数
+    default_handle_params = {}
+
     # 是否使用redis的配置，这里如果是True，会优先去redis中获取配置
     use_redis = False
 
@@ -32,7 +35,7 @@ class LimitConfig:
             "limit_quota": 3,            # 单位时间内生成的令牌数量
             "once_quota": 1,             # 每次请求消费的令牌数量
             "handle": "discard",         # discard丢弃；queue排队；retry重试
-            "handle_params": {},         # 处理方式对应的参数
+            "handle_params": {},         # 处理方式对应的参数，详细见handles的注释
         }
     }
     """
@@ -41,7 +44,7 @@ class LimitConfig:
 
 class RedisConfig:
     # 地址
-    host = 'localhost'
+    host = '129.204.145.169'
 
     # 端口
     port = 6380
@@ -63,3 +66,6 @@ class RedisConfig:
 
     # 额外参数
     kwargs = None
+
+    # 初始化连接池
+    conn = None
