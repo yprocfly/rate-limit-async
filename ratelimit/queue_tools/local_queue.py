@@ -36,25 +36,24 @@ class LocalQueueTools(BaseQueue):
 
     async def _consume(self):
         """消费队列【内存队列，这里可能会存在任务丢失的情况】"""
-        while True:
-            item = await self.get_item()
-            if not item:
-                await asyncio.sleep(1)
-                continue
+        item = await self.get_item()
+        if not item:
+            await asyncio.sleep(1)
+            return await self._consume()
 
-            func = item.get('func')
-            func_args = item.get('func_args')
-            func_kwargs = item.get('func_kwargs')
-            limit_config = item.get('limit_config')
-            key_name = limit_config.get('key_name')
+        func = item.get('func')
+        func_args = item.get('func_args')
+        func_kwargs = item.get('func_kwargs')
+        limit_config = item.get('limit_config')
+        key_name = limit_config.get('key_name')
 
-            # 这里也要判断是否超限
-            result, _ = await RedisRateLimit().attempt_get_token(key_name, limit_config)
-            if not result:
-                await asyncio.sleep(0)
-                continue
+        # 这里也要判断是否超限
+        result, _ = await RedisRateLimit().attempt_get_token(key_name, limit_config)
+        if not result:
+            return await self._consume()
 
-            await func(*func_args, **func_kwargs)
-            await asyncio.sleep(0)
+        await func(*func_args, **func_kwargs)
+        await asyncio.sleep(0)
+        return await self._consume()
 
 

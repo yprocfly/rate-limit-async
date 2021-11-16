@@ -56,34 +56,33 @@ class RedisQueueTools(BaseQueue):
         return item_list
 
     async def _consume(self):
-        """消费队列"""
-        while True:
-            item_list = await self.get_item()
-            if not item_list:
-                await asyncio.sleep(1)
+        """消费队列【递归】"""
+        item_list = await self.get_item()
+        if not item_list:
+            await asyncio.sleep(1)
+            return await self._consume()
+
+        for obj_str in item_list:
+            item = decode_serialize(obj_str)
+            if not item:
                 continue
 
-            for obj_str in item_list:
-                item = decode_serialize(obj_str)
-                if not item:
-                    await asyncio.sleep(0)
-                    continue
+            func = item.get('func')
+            func_args = item.get('func_args')
+            func_kwargs = item.get('func_kwargs')
+            limit_config = item.get('limit_config')
+            key_name = limit_config.get('key_name')
 
-                func = item.get('func')
-                func_args = item.get('func_args')
-                func_kwargs = item.get('func_kwargs')
-                limit_config = item.get('limit_config')
-                key_name = limit_config.get('key_name')
+            # 若再次被限制时，延时执行时间修改为limit_delay
+            handle_params = limit_config.get('handle_params') or {}
+            handle_params['delay'] = handle_params.get('limit_delay') or 0
 
-                # 若再次被限制时，延时执行时间修改为limit_delay
-                handle_params = limit_config.get('handle_params') or {}
-                handle_params['delay'] = handle_params.get('limit_delay') or 0
+            # 这里也要判断是否超限
+            result, _ = await RedisRateLimit().attempt_get_token(key_name, limit_config)
+            if not result:
+                continue
 
-                # 这里也要判断是否超限
-                result, _ = await RedisRateLimit().attempt_get_token(key_name, limit_config)
-                if not result:
-                    await asyncio.sleep(0)
-                    continue
+            await func(*func_args, **func_kwargs)
+            await asyncio.sleep(0)
 
-                await func(*func_args, **func_kwargs)
-                await asyncio.sleep(0)
+        return await self._consume()

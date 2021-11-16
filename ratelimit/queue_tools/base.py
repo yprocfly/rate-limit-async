@@ -37,6 +37,6 @@ class BaseQueue:
         """起一个协程消费"""
         if not self._has_thread:
             self._has_thread = True
-            # 将消费函数函数注册到这个event_loop上
-            asyncio.create_task(self._consume())
-
+            # 将消费函数函数注册到 event_loop 上
+            _loop = asyncio.get_event_loop()
+            asyncio.run_coroutine_threadsafe(self._consume(), _loop)
