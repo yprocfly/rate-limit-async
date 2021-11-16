@@ -1,4 +1,5 @@
 """基于本地队列，可能会出现数据丢失的问题"""
+import asyncio
 from asyncio import Queue
 
 from ratelimit.limits.redis_limit import RedisRateLimit
@@ -13,6 +14,7 @@ class LocalQueueTools(BaseQueue):
 
     def __init__(self):
         self._queue = Queue()
+        super().__init__()
 
     async def add_item(self, item):
         """
@@ -37,6 +39,7 @@ class LocalQueueTools(BaseQueue):
         while True:
             item = await self.get_item()
             if not item:
+                await asyncio.sleep(1)
                 continue
 
             func = item.get('func')
@@ -48,8 +51,10 @@ class LocalQueueTools(BaseQueue):
             # 这里也要判断是否超限
             result, _ = await RedisRateLimit().attempt_get_token(key_name, limit_config)
             if not result:
+                await asyncio.sleep(0)
                 continue
 
             await func(*func_args, **func_kwargs)
+            await asyncio.sleep(0)
 
 

@@ -17,3 +17,7 @@ class NotAllowHandleError(LimitError):
 
 class NotDefineHandleError(LimitError):
     """未定义处理类"""
+
+
+class ReWriteStopIteration(Exception):
+    """重写StopIteration报错"""

@@ -32,4 +32,3 @@ class QueueHandle(BaseHandle):
 
         queue_cls = QueueFactory().get_queue_cls(queue_type)
         await queue_cls().add_item(item)
-        await queue_cls().execute()

@@ -29,27 +29,35 @@ def async_rate_limit(key_name, default_return=None):
 
 
 if __name__ == '__main__':
+    async def test_limit():
+        @async_rate_limit('test')
+        async def test(number):
+            from datetime import datetime
+            print('*********', datetime.now(), number)
 
-    @async_rate_limit('test')
-    async def test(number):
-        from datetime import datetime
-        print('*********', datetime.now(), number)
+        import random
+        from ratelimit.base.constants import LimitConfig
+        LimitConfig.total_quota = 0
+        LimitConfig.limit_quota = 1
+        LimitConfig.default_handle = 'queue'
+        LimitConfig.default_handle_params = {
+            'delay': 3,
+            'limit_delay': 1,
+            'queue_type': 'redis'
+        }
 
+        await test(random.random())
+        await test(random.random())
 
-    import random
-    from ratelimit.base.constants import LimitConfig
-    LimitConfig.total_quota = 0
-    LimitConfig.limit_quota = 1
-    LimitConfig.default_handle = 'queue'
-    LimitConfig.default_handle_params = {
-        'delay': 3,
-        'limit_delay': 1,
-        'queue_type': 'redis'
-    }
+        await asyncio.sleep(5)
+
+        await test(random.random())
+        print('----------------3')
+        await test(random.random())
+        await test(random.random())
+        print('----------------4')
+        await asyncio.sleep(10)
 
     loop = asyncio.get_event_loop()
-    task = asyncio.ensure_future(test(random.random()))
-    task1 = asyncio.ensure_future(test(random.random()))
-
+    task = asyncio.ensure_future(test_limit())
     loop.run_until_complete(task)
-    loop.run_until_complete(task1)

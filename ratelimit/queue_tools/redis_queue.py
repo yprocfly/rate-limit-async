@@ -1,4 +1,5 @@
 """基于redis队列，使用pickle进行序列化，不支持跨语言"""
+import asyncio
 import time
 
 from ratelimit.base.constants import LimitConfig
@@ -29,13 +30,11 @@ class RedisQueueTools(BaseQueue):
         score = int(time.time()) + delay
         conn = await get_redis_connection()
         item['score'] = score
-        print(item)
-        print(self.queue_key, encode_serialize(item))
-        print(await conn.zadd(
+        await conn.zadd(
             key=self.queue_key,
             score=score,
             member=encode_serialize(item)
-        ))
+        )
 
     async def get_item(self):
         """
@@ -43,22 +42,31 @@ class RedisQueueTools(BaseQueue):
         :return:
         """
         conn = await get_redis_connection()
-        return await conn.zrangebyscore(
+        min_score = 0
+        max_score = time.time()
+
+        pl = conn.pipeline()
+        pl.zrangebyscore(
             key=self.queue_key,
-            min=0,
-            max=time.time()
+            min=min_score,
+            max=max_score
         )
+        pl.zremrangebyscore(self.queue_key, min=min_score, max=max_score)
+        item_list, _ = await pl.execute()
+        return item_list
 
     async def _consume(self):
         """消费队列"""
         while True:
             item_list = await self.get_item()
             if not item_list:
+                await asyncio.sleep(1)
                 continue
 
             for obj_str in item_list:
                 item = decode_serialize(obj_str)
                 if not item:
+                    await asyncio.sleep(0)
                     continue
 
                 func = item.get('func')
@@ -74,6 +82,8 @@ class RedisQueueTools(BaseQueue):
                 # 这里也要判断是否超限
                 result, _ = await RedisRateLimit().attempt_get_token(key_name, limit_config)
                 if not result:
+                    await asyncio.sleep(0)
                     continue
 
                 await func(*func_args, **func_kwargs)
+                await asyncio.sleep(0)
