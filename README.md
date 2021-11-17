@@ -27,7 +27,7 @@ RedisConfig.db = 0
 # 这里是默认的限流配置
 LimitConfig.service = 'default'         # 限流器所属服务
 LimitConfig.total_quota = 100           # 总令牌桶数量
-limit_LimitConfig.quota = 3             # 单位时间内生成的令牌数
+LimitConfig.quota = 3                   # 单位时间内生成的令牌数
 LimitConfig.limit_second = 1            # 单位时间
 LimitConfig.once_quota = 1              # 一次请求获取的令牌数
 LimitConfig.default_handle = 'discard'  # 被限流时的处理方式，默认丢弃【discard丢弃；queue排队；retry重试】
@@ -58,7 +58,7 @@ handle_params的配置如下：
     }
 3、handle 为 retry 类型的，配置如下：
     {
-        "retry_count"：3,    # 重试次数
+        "retry_count": 3,    # 重试次数
         "retry_wait": 0,     # 每次重试间隔，默认不等待，单位【秒】
         "current_count": 0,  # 当前已重试几次
     }

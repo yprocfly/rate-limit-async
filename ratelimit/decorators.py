@@ -43,7 +43,7 @@ if __name__ == '__main__':
         LimitConfig.default_handle_params = {
             'delay': 3,
             'limit_delay': 1,
-            'queue_type': 'redis'
+            'queue_type': 'local'
         }
 
         await test(random.random())

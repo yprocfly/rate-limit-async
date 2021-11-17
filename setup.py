@@ -24,7 +24,7 @@ def read_requirements(filename):
 
 setuptools.setup(
     name="rate_limit_async",
-    version="0.0.4",
+    version="0.0.5",
     author="Yang Peng",
     author_email="yp_rocfly@foxmail.com",
     description="distributed rate limiter",
