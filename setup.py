@@ -23,14 +23,14 @@ def read_requirements(filename):
 
 
 setuptools.setup(
-    name="rate_limit_tool",
+    name="rate_limit_async",
     version="0.0.4",
     author="Yang Peng",
     author_email="yp_rocfly@foxmail.com",
     description="distributed rate limiter",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yprocfly/rate-limit-tool",
+    url="https://github.com/yprocfly/rate-limit-async",
     keywords=['rate', 'rate-limit', 'limit', 'redis-cell'],
     packages=setuptools.find_packages(),
     install_requires=read_requirements('requirements.txt'),

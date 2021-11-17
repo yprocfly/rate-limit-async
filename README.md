@@ -1,5 +1,5 @@
 ### 安装方式
-pip install rate-limit-tool
+pip install rate-limit-async
 
 ### 使用说明
 基于redis-cell扩展的限流，使用该包需要安装redis-cell扩展，支持分布式限流。
