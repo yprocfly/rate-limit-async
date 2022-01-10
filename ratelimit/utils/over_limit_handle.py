@@ -38,8 +38,16 @@ class OverLimitHandle:
         func_kwargs = self.func_params.get('kwargs') or {}
         return await self.func(*func_args, **func_kwargs)
 
-    async def execute(self):
+    async def execute(self, exec_default_handle=True):
+        """
+        :param exec_default_handle: 是否执行默认操作
+        :return:
+        """
         if await self._can_do_func():
             return await self._run_func()
+
+        # 如果不执行默认配置的操作，直接返回默认结果
+        if not exec_default_handle:
+            return self.default_return
 
         return await self._do_if_limit()
