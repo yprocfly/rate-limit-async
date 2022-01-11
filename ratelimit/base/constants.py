@@ -44,10 +44,10 @@ class LimitConfig:
 
 class RedisConfig:
     # 地址
-    host = '129.204.145.169'
+    host = '127.0.0.1'
 
     # 端口
-    port = 6380
+    port = 6379
 
     # 数据库
     db = 0
