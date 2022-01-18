@@ -61,8 +61,15 @@ class RedisRateLimit:
             once_quota = limit_config.get('once_quota') or LimitConfig.once_quota
 
             conn = await get_redis_connection()
-            result = await conn.execute('CL.THROTTLE', key_name, total_quota, limit_quota, limit_second, once_quota)
-            print(f'* limit result【{key_name}】', result)
+            result = await conn.execute(
+                'CL.THROTTLE',
+                f'{LimitConfig.service}:{key_name}',
+                total_quota,
+                limit_quota,
+                limit_second,
+                once_quota
+            )
+            print(f'* limit result【{LimitConfig.service} - {key_name}】', result)
             return result[0] == 0, limit_config
         except Exception as err:
             # 出现报错直接允许【高可用】
