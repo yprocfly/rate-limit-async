@@ -1,5 +1,6 @@
 """基于redis-cell的流量控制器"""
 import asyncio
+import logging
 import traceback
 
 import ujson as json
@@ -7,6 +8,8 @@ import ujson as json
 from ratelimit.base.base_decorators import singleton
 from ratelimit.base.constants import LimitConfig
 from ratelimit.base.tools import get_redis_connection
+
+logger = logging.getLogger(__name__)
 
 
 @singleton
@@ -69,11 +72,11 @@ class RedisRateLimit:
                 limit_second,
                 once_quota
             )
-            print(f'* limit result【{LimitConfig.service} - {key_name}】', result)
+            logger.debug(f'* limit result【{LimitConfig.service} - {key_name}】', result)
             return result[0] == 0, limit_config
         except Exception as err:
             # 出现报错直接允许【高可用】
-            print(f'尝试获取令牌出错：{traceback.format_exc()}')
+            logger.warning(f'尝试获取令牌出错：{traceback.format_exc()}')
             return True, {}
 
 

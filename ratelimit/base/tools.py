@@ -33,7 +33,6 @@ def decode_serialize(obj_str):
     try:
         return pickle.loads(base64.b64decode(obj_str))
     except Exception as err:
-        print(err)
         return None
 
 
