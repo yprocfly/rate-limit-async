@@ -10,7 +10,7 @@ def read_file(filename):
     return long_description
 
 
-with open("README.md", "r") as fh:
+with open("README.md", "r", encoding='utf-8') as fh:
     long_description = fh.read()
 
 
@@ -24,7 +24,7 @@ def read_requirements(filename):
 
 setuptools.setup(
     name="rate_limit_async",
-    version="1.0.0",
+    version="1.0.1",
     author="Yang Peng",
     author_email="yp_rocfly@foxmail.com",
     description="distributed rate limiter",
