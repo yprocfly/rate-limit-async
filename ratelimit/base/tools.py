@@ -1,13 +1,8 @@
-import asyncio
 import base64
-# import pickle
-import contextvars
-import functools
-
 import dill as pickle
+import aioredis_cluster
 
 from ratelimit.base.constants import RedisConfig
-from ratelimit.base.errors import ReWriteStopIteration
 
 try:
     from aioredis import create_redis_pool, ConnectionsPool
@@ -38,11 +33,29 @@ def decode_serialize(obj_str):
 
 async def get_redis_connection():
     """获取一个redis连接"""
-    if RedisConfig.conn is None:
+    if RedisConfig.conn:
+        return RedisConfig.conn
+
+    if RedisConfig.is_cluster:
+        # 集群模式
+        assert RedisConfig.startup_nodes, '集群节点未配置'
+        RedisConfig.conn = await aioredis_cluster.create_redis_cluster(
+            startup_nodes=RedisConfig.startup_nodes,
+            password=RedisConfig.password,
+            pool_minsize=RedisConfig.minsize,
+            pool_maxsize=RedisConfig.maxsize,
+            connect_timeout=RedisConfig.timeout,
+            **(RedisConfig.kwargs or {})
+        )
+    else:
+        # 单机模式
         RedisConfig.conn = await create_redis_pool(
-            f"redis://:{RedisConfig.password}@{RedisConfig.host}:{RedisConfig.port}/{RedisConfig.db}",
+            address=[RedisConfig.host, RedisConfig.port],
+            db=RedisConfig.db,
+            password=RedisConfig.password,
             minsize=RedisConfig.minsize,
             maxsize=RedisConfig.maxsize,
+            timeout=RedisConfig.timeout,
             **(RedisConfig.kwargs or {})
         )
 

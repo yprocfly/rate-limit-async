@@ -53,7 +53,7 @@ class RedisConfig:
     db = 0
 
     # 密码
-    password = ''
+    password = None
 
     # 最小连接数
     minsize = 1
@@ -69,3 +69,14 @@ class RedisConfig:
 
     # 初始化连接池
     conn = None
+
+    # 是否使用集群方式
+    is_cluster = False
+
+    """
+    redis集群节点配置，is_cluster为true时需要配置，格式如下：
+    [
+        ["127.0.0.1", 6379]
+    ]
+    """
+    startup_nodes = []
